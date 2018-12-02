@@ -46,9 +46,9 @@ class Dispatcher {
     {
         list($handler, $filters, $vars) = $this->dispatchRoute($httpMethod, trim($uri, '/'));
 
-        list($beforeFilter, $afterFilter) = $this->parseFilters($filters);
+        list($beforeFilter, $afterFilter, $filterParams) = $this->parseFilters($filters);
 
-        if(($response = $this->dispatchFilters($beforeFilter)) !== null)
+        if(($response = $this->dispatchFilters($beforeFilter, null, $filterParams)) !== null)
         {
             return $response;
         }
@@ -57,7 +57,7 @@ class Dispatcher {
         
         $response = call_user_func_array($resolvedHandler, $vars);
 
-        return $this->dispatchFilters($afterFilter, $response);
+        return $this->dispatchFilters($afterFilter, $response, $filterParams);
     }
 
     /**
@@ -67,13 +67,13 @@ class Dispatcher {
      * @param null $response
      * @return mixed|null
      */
-    private function dispatchFilters($filters, $response = null)
+    private function dispatchFilters($filters, $response = null, $filterParams = null)
     {
         while($filter = array_shift($filters))
         {
         	$handler = $this->handlerResolver->resolve($filter);
         	
-            if(($filteredResponse = call_user_func($handler, $response)) !== null)
+            if(($filteredResponse = call_user_func($handler, $response, $filterParams)) !== null)
             {
                 return $filteredResponse;
             }
@@ -92,18 +92,26 @@ class Dispatcher {
     {        
         $beforeFilter = array();
         $afterFilter = array();
+        $filterParams = array();
         
         if(isset($filters[Route::BEFORE]))
         {
-            $beforeFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::BEFORE]));
+            //$beforeFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::BEFORE]));
+            $beforeFilter = array_intersect_key(array_flip((array) $filters[Route::BEFORE]), $this->filters);
         }
 
         if(isset($filters[Route::AFTER]))
         {
-            $afterFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::AFTER]));
+            //$afterFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::AFTER]));
+            $afterFilter = array_intersect_key(array_flip((array) $filters[Route::AFTER]), $this->filters);
+        }
+
+        if(isset($filters['filterParams']))
+        {   
+            $filterParams = array_intersect_key(array_flip((array) $filters['filterParams']), $this->filters);   
         }
         
-        return array($beforeFilter, $afterFilter);
+        return array($beforeFilter, $afterFilter, $filterParams);
     }
 
     /**
