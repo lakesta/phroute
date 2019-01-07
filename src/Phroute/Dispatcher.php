@@ -96,14 +96,12 @@ class Dispatcher {
         
         if(isset($filters[Route::BEFORE]))
         {
-            //$beforeFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::BEFORE]));
-            $beforeFilter = array_intersect_key(array_flip((array) $filters[Route::BEFORE]), $this->filters);
+            $beforeFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::BEFORE]));
         }
 
         if(isset($filters[Route::AFTER]))
         {
-            //$afterFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::AFTER]));
-            $afterFilter = array_intersect_key(array_flip((array) $filters[Route::AFTER]), $this->filters);
+            $afterFilter = array_intersect_key($this->filters, array_flip((array) $filters[Route::AFTER]));
         }
 
         if(isset($filters['filterParams']))
